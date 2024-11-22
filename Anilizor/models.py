@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 class Docs(models.Model):
@@ -8,3 +9,27 @@ class Docs(models.Model):
 
     def __str__(self):
         return self.name
+
+class Users_to_docs(models.Model):
+    username = models.CharField(max_length=255)
+    docs_id = models.ForeignKey(Docs, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.username
+
+class Prise(models.Model):
+    file_type = models.CharField(unique=True)
+    price = models.FloatField()
+
+    def __str__(self):
+        return self.file_type
+
+
+class Cart(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    docs_id = models.ForeignKey(Docs, on_delete=models.CASCADE)
+    order_price = models.FloatField()
+    payment = models.BooleanField()
+
+    def __str__(self):
+        return self.user_id.username
