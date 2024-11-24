@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная</title>
+</head>
+<body>
+Здесь вы сможете получить обработку вашей картинки легко и быстро!!!
+<div class="buttons">
+        <a href="{% url 'add_image' %}">
+            <button>Добавить картинку</button>
+        </a>
+        <a href="{% url 'show_images' %}">
+            <button>Показать картинки</button>
+        </a>
+    <!-- Временно анализ будет по ID первой картинки -->
+        <a href="{% url 'analyze_image' 1 %}">
+            <button>Проанализировать картинку</button>
+        </a>
+
+    </div>
+
+</body>
+</html>

@@ -16,7 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from Anilizor import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-]
+    path('', views.home1),
+    path('about/', views.about, name='about'),
+    path('base1/', views.base1, name='base1'),
+    path('register/', views.register_view, name='register'),
+    path('login/', views.login_view, name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('add_image/', views.add_image, name='add_image'),
+    path('show_images/', views.show_images, name='show_images'),
+    path('analyze_image/<int:image_id>/', views.analyze_image, name='analyze_image'),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

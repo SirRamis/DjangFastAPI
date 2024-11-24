@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+Здесь вы сможете получить обработку вашей картинки легко и быстро!!!
+
+{% if user.is_authenticated %}
+    <p>Добро пожаловать, {{ user.username }}!</p>
+    <a href="{% url 'base1' %}"><button>На главную</button></a>
+    <a href="{% url 'logout' %}"><button>Выйти</button></a>
+{% else %}
+    Войдите либо пройдите регистрацию!!!
+    <a href="{% url 'login' %}"><button>Войти</button></a>
+    <a href="{% url 'register' %}"><button>Регистрация</button></a>
+    <a href="about/"><button>Информация</button></a>
+{% endif %}

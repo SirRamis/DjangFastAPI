@@ -1,0 +1,12 @@
+<h1>Список картинок</h1>
+<ul>
+    {% for image in images %}
+        <li>
+            <img src="{{ image.image_file.url }}" alt="{{ image.name }}" style="max-width:200px;">
+            <p>{{ image.id }}</p>
+            <a href="{% url 'analyze_image' image.id %}">Проанализировать</a>
+        </li>
+    <a href="/">На главную</a>
+    {% endfor %}
+
+</ul>
