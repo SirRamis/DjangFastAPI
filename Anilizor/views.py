@@ -16,14 +16,14 @@ def home1(request):
 
 def base1(request):
     return render(request, 'base1.html')
-#@login_required
+@login_required
 def add_image(request):
     if request.method == 'POST':
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
             image = form.save()
 
-            # Создаём запись в Docs, если вам нужно отдельно сохранять информацию о документе
+
             doc = Docs.objects.create(
                 name=image.name,  # Имя файла
                 file_path=image.image_file.path,  # Путь к файлу
@@ -35,6 +35,7 @@ def add_image(request):
         form = ImageForm()
     return render(request, 'add_image.html', {'form': form})
 
+@login_required
 def show_images(request):
     images = Image.objects.all()
     return render(request, 'show_images.html', {'images': images})
