@@ -1,12 +1,39 @@
-<h1>Список картинок</h1>
-<ul>
-    {% for image in images %}
-        <li>
-            <img src="{{ image.image_file.url }}" alt="{{ image.name }}" style="max-width:200px;">
-            <p>{{ image.id }}</p>
-            <a href="{% url 'analyze_image' image.id %}">Проанализировать</a>
-        </li>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список документов</title>
+    <style>
+        .document {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        .document img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Список документов</h1>
+    <ul>
+        {% for document in images %}
+            <li class="document">
+                <h3>{{ document.filename }}</h3>
+                {% if document.file_path %}
+                    <a href="{{ document.file_path.url }}" target="_blank">Скачать или открыть документ</a>
+                {% else %}
+                    <p>Файл отсутствует</p>
+                {% endif %}
+                <p>Размер файла: {{ document.size|default:"Не указан" }} байт</p>
+            </li>
+        <a href="/">На главную</a>
+        {% endfor %}
+    </ul>
     <a href="/">На главную</a>
-    {% endfor %}
-
-</ul>
+</body>
+</html>

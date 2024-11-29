@@ -1,44 +1,84 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-
-from .models import Docs, Users_to_docs
+from time import sleep
+from .models import Docs, Users_to_docs, Documents
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Image
 from .forms import ImageForm
 from django.contrib.auth.decorators import login_required
+import requests
+#ручки для фаст апи
+FASTAPI_URL = "http://localhost:8000/upload_doc/"  # Адрес FastAPI
 
-def home1(request):
-    documents = Docs.objects.all()
-    return render(request, 'home1.html')
-
-
-def base1(request):
-    return render(request, 'base1.html')
 @login_required
 def add_image(request):
     if request.method == 'POST':
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
             image = form.save()
+            file_path = image.image_file.path
+            print(f"Загружаем файл: {file_path}")
+            with open(file_path, 'rb') as f:
+                files = {'file': f}
+                response = requests.post(FASTAPI_URL, files=files)
+            print(f"Ответ FastAPI: {response.status_code} - {response.text}")
+            if response.status_code == 200:
+                api_result = response.json()
+                status = api_result.get("status", "Неизвестный статус")
+                filename = api_result.get("filename", "Неизвестное имя файла")
 
+                # Сохраняем файл в базу данных Django
+                document = Documents.objects.create(
+                    filename=filename,
+                    file_path=file_path,
+                    size=image.image_file.size
+                )
+                Users_to_docs.objects.create(user=request.user, docs_id=document)
 
-            doc = Docs.objects.create(
-                name=image.name,  # Имя файла
-                file_path=image.image_file.path,  # Путь к файлу
-                size=image.image_file.size  # Размер файла
-            )
-            Users_to_docs.objects.create(user=request.user, docs_id=doc)
-            return redirect('show_images')
+                # Показываем результат пользователю
+                return render(request, 'result.html', {"status": status})
+            else:
+                return render(request, 'result.html', {"status": "Ошибка загрузки в FastAPI"})
+
     else:
         form = ImageForm()
     return render(request, 'add_image.html', {'form': form})
 
+def home1(request):
+    documents = Docs.objects.all()
+    return render(request, 'home1.html')
+
+def base1(request):
+    return render(request, 'base1.html')
+# @login_required
+# def show_images(request):
+#     documents = Documents.objects.all()
+#     return render(request, 'show_images.html', {'documents': documents})
+#
+# @login_required
+# def show_images(request):
+#     image = Documents.objects.all()
+#     return render(request, 'show_images.html', {'images': image})
+# @login_required
+# def show_images(request):
+#     image = Image.objects.all()
+#     return render(request, 'show_images.html', {'images': image})
 @login_required
 def show_images(request):
-    images = Image.objects.all()
-    return render(request, 'show_images.html', {'images': images})
+    FASTAPI_URL = "http://localhost:8000/get_doc"
+    response = requests.get(FASTAPI_URL)
+    docu = Documents.objects.all()
+    if response.status_code == 200:
+        result = response.json()
+        # print(f"Ответ от FastAPI: {result}")
+        # images = result['files']
+        # image_urls = [f"/media/{image['filename']}" for image in images]
+        return render(request, 'show_images.html', {'images': docu})
+    else:
+        print(f"Ошибка: {response.status_code}")
+        return {"error": response.text}
 
 def analyze_image(request, image_id):
     image = Image.objects.get(id=image_id)
