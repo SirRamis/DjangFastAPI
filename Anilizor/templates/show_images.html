@@ -25,15 +25,19 @@
             <li class="document">
                 <h3>{{ document.filename }}</h3>
                 {% if document.file_path %}
-                    <a href="{{ document.file_path.url }}" target="_blank">Скачать или открыть документ</a>
+                    <img src="{{ document.file_path.url }}" alt="{{ document.filename }}">
                 {% else %}
                     <p>Файл отсутствует</p>
                 {% endif %}
                 <p>Размер файла: {{ document.size|default:"Не указан" }} байт</p>
             </li>
-        <a href="/">На главную</a>
+        <a href="/base1/">
+            <button>На главную</button>
+        </a>
+        <a href="{% url 'analyze_image' 1 %}">
+            <button>Проанализировать картинку</button>
+        </a>
         {% endfor %}
     </ul>
-    <a href="/">На главную</a>
 </body>
 </html>

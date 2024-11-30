@@ -4,13 +4,59 @@ from time import sleep
 from .models import Docs, Users_to_docs, Documents
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .models import Image
-from .forms import ImageForm
-from django.contrib.auth.decorators import login_required
+from .forms import ImageForm, ImageUploadForm
+from django.contrib.auth.decorators import login_required, user_passes_test
 import requests
+import logging
+
 #ручки для фаст апи
 FASTAPI_URL = "http://localhost:8000/upload_doc/"  # Адрес FastAPI
+# views.py
+
+# def add_image(request):
+#     if request.method == 'POST' and request.FILES['file']:
+#         file = request.FILES['file']
+#         files = {'file': file}
+#         response = requests.post(FASTAPI_URL, files=files)
+#         if response.status_code == 200:
+#             message = "Успешно"
+#         else:
+#             message = "Фиаско"
+#         return render(request, 'result.html', {'message': message})
+#     return render(request, 'add_image.html')
+# @login_required
+# def add_image(request):
+#     if request.method == 'POST':
+#         form = ImageForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             image_file = form.cleaned_data['image_file']
+#             files = {'file': image_file}
+#             response = requests.post(FASTAPI_URL, files=files)
+#             image = form.save()
+#             file_path = image.image_file.path
+#             if response.status_code == 200:
+#                 message = response.json()
+#                 file_path = message.get('file_path')
+#                 filename = message.get('filename')
+#                 document = Documents.objects.create(
+#                     filename=filename,
+#                     file_path=file_path,
+#                     size=image_file.size
+#                 )
+#                 logging.info(f"Filename: {filename}, File path: {file_path}")
+#
+#                 Users_to_docs.objects.create(user=request.user, docs_id=document)
+#             else:
+#                 message = "Фиаско"
+#             return render(request, 'result.html', {'message': message})
+#         else:
+#             return render(request, 'result.html', {'form': form, 'message': 'Фиаско'})
+#     else:
+#         form = ImageForm()
+#     return render(request, 'add_image.html', {'form': form})
+
 
 @login_required
 def add_image(request):
@@ -29,15 +75,12 @@ def add_image(request):
                 status = api_result.get("status", "Неизвестный статус")
                 filename = api_result.get("filename", "Неизвестное имя файла")
 
-                # Сохраняем файл в базу данных Django
                 document = Documents.objects.create(
                     filename=filename,
                     file_path=file_path,
                     size=image.image_file.size
                 )
-                Users_to_docs.objects.create(user=request.user, docs_id=document)
 
-                # Показываем результат пользователю
                 return render(request, 'result.html', {"status": status})
             else:
                 return render(request, 'result.html', {"status": "Ошибка загрузки в FastAPI"})
@@ -69,7 +112,7 @@ def base1(request):
 def show_images(request):
     FASTAPI_URL = "http://localhost:8000/get_doc"
     response = requests.get(FASTAPI_URL)
-    docu = Documents.objects.all()
+    docu = Documents.objects.filter(file_path__isnull=False)
     if response.status_code == 200:
         result = response.json()
         # print(f"Ответ от FastAPI: {result}")
@@ -82,7 +125,6 @@ def show_images(request):
 
 def analyze_image(request, image_id):
     image = Image.objects.get(id=image_id)
-    # Здесь будет логика анализа
     result = f"Анализ {image.name} успешно."
     return JsonResponse({'message': result})
 
@@ -125,3 +167,26 @@ def logout_view(request):
 
 def about(request):
     return render(request, 'about.html')
+
+def is_moderator_or_admin(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+@login_required
+#@user_passes_test(is_moderator_or_admin)
+def delete_doc(request):
+    if request.method == "POST":
+        doc_id = request.POST.get("doc_id")
+        if not doc_id:
+            return HttpResponse("ID документа не указан", status=400)
+        try:
+            response = requests.post(
+                "http://127.0.0.1:8000/delete_doc",
+                json={"doc_id": int(doc_id)},
+            )
+            if response.status_code == 200:
+                return HttpResponse("Документ успешно удален")
+            else:
+                return HttpResponse(f"Ошибка при удалении документа")
+        except Exception as e:
+            return HttpResponse(f"Произошла ошибка: {e}", status=500)
+    return render(request, "delete_doc.html")

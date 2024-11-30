@@ -7,22 +7,21 @@ class Docs(models.Model):
     size = models.IntegerField(blank=True, null=True)
 
 class Documents(models.Model):
-    filename = models.CharField(max_length=255)  # Название документа
-    file_path = models.FileField(upload_to='docs/')  # Путь к файлу
-    size = models.IntegerField(blank=True, null=True)  # Размер файла в байтах
+    filename = models.CharField(max_length=255)
+    file_path = models.FileField(upload_to='docs/')
+    size = models.IntegerField(blank=True, null=False)
 
     class Meta:
-        db_table = 'documents'  # Имя таблицы в базе данных
+        db_table = 'documents'
         #managed = False  # Django не управляет этой таблицей
 
 
 class DocumentsText(models.Model):
-    id = models.AutoField(primary_key=True)  # Автоматический первичный ключ
-    document_id = models.IntegerField()  # ID документа (ссылка на Documents)
-    text = models.TextField()  # Содержимое текста
+    id = models.AutoField(primary_key=True)
+    text = models.TextField()
 
     class Meta:
-        db_table = 'documents_text'  # Имя таблицы в базе данных
+        db_table = 'documents_text'
         #managed = False  # Django не управляет этой таблицей
 
 

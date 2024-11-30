@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Список документов</title>
+</head>
+<body>
+  <h1>Список документов</h1>
+    {% for document in images %}
+      <h3>{{ document.filename }}</h3>
+      <p>Размер файла: {{ document.size|default:"Не указан" }} байт</p>
+      <a href="/">На главную</a>
+</body>
+</html>

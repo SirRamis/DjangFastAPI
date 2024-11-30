@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Удаление документа</title>
+</head>
+<body>
+    <h1>Удаление документа</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <label for="doc_id">ID документа:</label>
+        <input type="number" id="doc_id" name="doc_id" required>
+        <button type="submit">Удалить</button>
+    </form>
+<a href="/base1/"><button>На главную</button></a>
+</body>
+</html>
