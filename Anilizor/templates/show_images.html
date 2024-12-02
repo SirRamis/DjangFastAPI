@@ -23,7 +23,7 @@
     <ul>
         {% for document in images %}
             <li class="document">
-                <h3>{{ document.filename }}</h3>
+                Имя файла : <h3>{{ document.filename }}</h3>
                 <p>ID : {{ document.id }}</p>
                 {% if document.file_path %}
                     <img src="{{ document.file_path.url }}" alt="{{ document.filename }}">

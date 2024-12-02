@@ -95,19 +95,7 @@ def home1(request):
 
 def base1(request):
     return render(request, 'base1.html')
-# @login_required
-# def show_images(request):
-#     documents = Documents.objects.all()
-#     return render(request, 'show_images.html', {'documents': documents})
-#
-# @login_required
-# def show_images(request):
-#     image = Documents.objects.all()
-#     return render(request, 'show_images.html', {'images': image})
-# @login_required
-# def show_images(request):
-#     image = Image.objects.all()
-#     return render(request, 'show_images.html', {'images': image})
+
 @login_required
 def show_images(request):
     FASTAPI_URL = "http://localhost:8000/get_doc"
@@ -178,9 +166,7 @@ def delete_doc(request):
         if not doc_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.delete(
-                f"http://127.0.0.1:8000/delete_doc/{doc_id}"
-            )
+            response = requests.delete(f"http://127.0.0.1:8000/delete_doc/{doc_id}")
             if response.status_code == 200:
                 return HttpResponse("Документ успешно удален")
             else:
