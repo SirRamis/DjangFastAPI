@@ -24,12 +24,15 @@
         {% for document in images %}
             <li class="document">
                 <h3>{{ document.filename }}</h3>
+                <p>ID : {{ document.id }}</p>
                 {% if document.file_path %}
                     <img src="{{ document.file_path.url }}" alt="{{ document.filename }}">
                 {% else %}
                     <p>Файл отсутствует</p>
                 {% endif %}
                 <p>Размер файла: {{ document.size|default:"Не указан" }} байт</p>
+                <p>Цена анализа : {{ document.analysis_price }} рублей</p>
+
             </li>
         <a href="/base1/">
             <button>На главную</button>

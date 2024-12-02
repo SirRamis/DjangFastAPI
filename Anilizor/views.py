@@ -114,10 +114,8 @@ def show_images(request):
     response = requests.get(FASTAPI_URL)
     docu = Documents.objects.filter(file_path__isnull=False)
     if response.status_code == 200:
-        result = response.json()
-        # print(f"Ответ от FastAPI: {result}")
-        # images = result['files']
-        # image_urls = [f"/media/{image['filename']}" for image in images]
+        for document in docu:
+            document.analysis_price = f'{(document.size or 0) * 0.001:.2f}'
         return render(request, 'show_images.html', {'images': docu})
     else:
         print(f"Ошибка: {response.status_code}")
@@ -172,16 +170,16 @@ def is_moderator_or_admin(user):
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
 @login_required
-#@user_passes_test(is_moderator_or_admin)
 def delete_doc(request):
+    if not is_moderator_or_admin(request.user):
+        return render(request, 'not_moder.html')
     if request.method == "POST":
         doc_id = request.POST.get("doc_id")
         if not doc_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.post(
-                "http://127.0.0.1:8000/delete_doc",
-                json={"doc_id": int(doc_id)},
+            response = requests.delete(
+                f"http://127.0.0.1:8000/delete_doc/{doc_id}"
             )
             if response.status_code == 200:
                 return HttpResponse("Документ успешно удален")
