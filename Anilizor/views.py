@@ -193,36 +193,39 @@ def analyze_image(request, document_id):
     documents = Documents.objects.all()
     return render(request, "analyze_image.html", {"documents": documents})
 
+
 def show_text(request,document_id):
-    FASTAPI_URL = "http://localhost:8000/doc_text"
+    FASTAPI_URL = f"http://localhost:8000/doc_text/{document_id}"
     response = requests.get(FASTAPI_URL)
     docu = DocumentsText.objects.filter(file_path__isnull=False)
     if response.status_code == 200:
+        fastapi_data = response.json()
         return render(request, 'show_text.html', {'images': docu})
     else:
         print(f"Ошибка: {response.status_code}")
-        return {f"Ошибка: {response.status_code}"}
+        return JsonResponse({"error": f"Ошибка: {response.status_code}"}, status=response.status_code)
+
 
 from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-import random
+
+
+# def show_text(request):
+#     FASTAPI_URL = "http://localhost:8000/doc_text"
+#     response = requests.get(FASTAPI_URL)  # Извлекаем ID из строки запроса
+#     if not :
+#         return JsonResponse({"error": "ID документа не предоставлен."}, status=400)
+#
+#     # Пример обработки ID документа
+#     return JsonResponse({
+#         "status": "success",
+#         "document_id": document_id,
+#         "message": "Текст документа успешно получен."
+#     })
 
 @csrf_exempt
-def payment(request, document_id):
-    if request.method == "POST":
-        is_payment_successful = True
-        if is_payment_successful:
-            result = {
-                "status": "success",
-                "message": "Оплата прошла успешно. Обработка документа завершена.",
-                "document_id": document_id,
-                "analysis_result": "Изображение обработано корректно."
-            }
-        else:
-             result = {
-                "status": "failed",
-                "message": "Оплата не удалась. Попробуйте снова.",
-                "document_id": document_id
-            }
-        return JsonResponse(result)
-    return JsonResponse({"error": "Неподдерживаемый метод запроса. Используйте POST."}, status=405)
+def payment(request):
+    is_payment_successful = True
+    if is_payment_successful:
+        return render(request, 'payment.html')
+    else:
+        return HttpResponse(f'<h2>Оплата не прошла</h2>')
