@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат</title>
+    <style>
+        .document {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+        .document img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Список документов</h1>
+    <ul>
+        {% for document in texts %}
+            <li class="document">
+                <h3>Имя файла: {{ document.document_id }}</h3>
+                <p>ID: {{ document.id }}</p>
+                {% if document.text %}
+                    <p>{{ document.text }}</p>
+                {% else %}
+                    <p>Файл отсутствует</p>
+                {% endif %}
+                <a href="{% url 'analyze_image' document.id %}">
+                    <button>Проанализировать документ</button>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="/base1/">
+        <button>На главную</button>
+    </a>
+</body>
+</html>

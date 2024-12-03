@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class Docs(models.Model):
-    name = models.CharField(max_length=255)
+    filename = models.CharField(max_length=255)
     file_path = models.FileField(upload_to='docs/')
     size = models.IntegerField(blank=True, null=True)
 
@@ -18,6 +18,7 @@ class Documents(models.Model):
 
 class DocumentsText(models.Model):
     id = models.AutoField(primary_key=True)
+    document_id = models.IntegerField()
     text = models.TextField()
 
     class Meta:

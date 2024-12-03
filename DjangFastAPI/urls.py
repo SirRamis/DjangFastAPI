@@ -31,5 +31,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('add_image/', views.add_image, name='add_image'),
     path('show_images/', views.show_images, name='show_images'),
-    path('analyze_image/<int:image_id>/', views.analyze_image, name='analyze_image'),
+    path('show_text/', views.show_text, name='show_text'),
+    path('payment/', views.payment, name='payment'),
+    path('analyze_image/<int:document_id>/', views.analyze_image, name='analyze_image'),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

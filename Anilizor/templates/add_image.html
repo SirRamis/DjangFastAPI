@@ -9,8 +9,9 @@
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Загрузить</button>
+
 </form>
 <a href="/base1/"><button>На главную</button></a>
-
+<a href="{% url 'show_images' %}"><button>Показать картинки</button></a>
 </body>
 </html>

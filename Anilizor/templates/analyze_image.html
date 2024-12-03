@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Анализ картинки</title>
+</head>
+<body>
+    <h1>Анализ документа</h1>
+    <form method="POST" action="{% url 'analyze_image' 0 %}">
+        {% csrf_token %}
+        <label for="document_id">ID документа:</label>
+        <input type="number" id="document_id" name="document_id" >
+        <button type="submit">Анализировать</button>
+    </form>
+<a href="/base1/"><button>На главную</button></a>
+</body>
+</html>

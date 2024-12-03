@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from time import sleep
-from .models import Docs, Users_to_docs, Documents
+from .models import Docs, Users_to_docs, Documents,DocumentsText
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
@@ -81,7 +81,7 @@ def add_image(request):
                     size=image.image_file.size
                 )
 
-                return render(request, 'result.html', {"status": status})
+                return render(request, 'result.html', {"status": 'Файл успешно загружен'})
             else:
                 return render(request, 'result.html', {"status": "Ошибка загрузки в FastAPI"})
 
@@ -107,12 +107,12 @@ def show_images(request):
         return render(request, 'show_images.html', {'images': docu})
     else:
         print(f"Ошибка: {response.status_code}")
-        return {"error": response.text}
+        return {f"Ошибка: {response.status_code}"}
 
 def analyze_image(request, image_id):
     image = Image.objects.get(id=image_id)
     result = f"Анализ {image.name} успешно."
-    return JsonResponse({'message': result})
+    return render(request, 'show_text.html')
 
 
 # # Регистрация
@@ -168,9 +168,61 @@ def delete_doc(request):
         try:
             response = requests.delete(f"http://127.0.0.1:8000/delete_doc/{doc_id}")
             if response.status_code == 200:
-                return HttpResponse("Документ успешно удален")
+                return render(request, 'delete_mess.html', {'message':"Успешно удалено."})
             else:
-                return HttpResponse(f"Ошибка при удалении документа")
+                return render(request, 'delete_mess.html', {'message':"Произошла ошибка."})
         except Exception as e:
             return HttpResponse(f"Произошла ошибка: {e}", status=500)
     return render(request, "delete_doc.html")
+
+@login_required
+def analyze_image(request, document_id):
+    if request.method == "POST":
+        document_id = request.POST.get("document_id")
+        if not document_id:
+            return HttpResponse("ID документа не указан", status=400)
+        try:
+            response = requests.post(f"http://127.0.0.1:8000/doc_analyse/{document_id}")
+            if response.status_code == 200:
+                #return HttpResponse("Документ успешно проанализирован")
+                return render(request, 'show_text.html')
+            else:
+                return HttpResponse(f"Ошибка при анализе документа")
+        except Exception as e:
+            return HttpResponse(f"Произошла ошибка: {e}", status=500)
+    documents = Documents.objects.all()
+    return render(request, "analyze_image.html", {"documents": documents})
+
+def show_text(request,document_id):
+    FASTAPI_URL = "http://localhost:8000/doc_text"
+    response = requests.get(FASTAPI_URL)
+    docu = DocumentsText.objects.filter(file_path__isnull=False)
+    if response.status_code == 200:
+        return render(request, 'show_text.html', {'images': docu})
+    else:
+        print(f"Ошибка: {response.status_code}")
+        return {f"Ошибка: {response.status_code}"}
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import random
+
+@csrf_exempt
+def payment(request, document_id):
+    if request.method == "POST":
+        is_payment_successful = True
+        if is_payment_successful:
+            result = {
+                "status": "success",
+                "message": "Оплата прошла успешно. Обработка документа завершена.",
+                "document_id": document_id,
+                "analysis_result": "Изображение обработано корректно."
+            }
+        else:
+             result = {
+                "status": "failed",
+                "message": "Оплата не удалась. Попробуйте снова.",
+                "document_id": document_id
+            }
+        return JsonResponse(result)
+    return JsonResponse({"error": "Неподдерживаемый метод запроса. Используйте POST."}, status=405)

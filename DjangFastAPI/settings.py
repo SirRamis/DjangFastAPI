@@ -55,7 +55,7 @@ ROOT_URLCONF = 'DjangFastAPI.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],#неоходимо будет добавить
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,7 +81,10 @@ DATABASES = {
         'USER': 'postgres',
         'PASSWORD': '171217',
         'HOST': 'localhost',  # Или IP-адрес сервера базы данных
-        'PORT': '5432',       # Порт по умолчанию
+        'PORT': '5432',
+        'TEST': {
+            'NAME': 'test_Docs',  # Название базы для тестов
+        },
     }
 }
 
