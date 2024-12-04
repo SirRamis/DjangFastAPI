@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 171217
+      POSTGRES_DB: Docs
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+    ports:
+      - "5672:5672"  # порт для подключения Celery
+      - "15672:15672"  # порт для доступа к панели управления RabbitMQ
+
+  fastapi:
+    build: ./fastapi  # Путь к директории FastAPI
+    environment:
+      DATABASE_URL: "postgresql://postgres:171217@localhost:5432/Docs"
+      CELERY_BROKER_URL: "pyamqp://guest@rabbitmq//"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - celery
+    volumes:
+      - ./documents:/app/documents
+
+  celery:
+    build: ./fastapi  # Путь к директории FastAPI
+    command: celery -A celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: "postgresql://postgres:171217@localhost:5432/Docs"
+      CELERY_BROKER_URL: "pyamqp://guest@host.docker.internal//"  # Убедитесь, что адрес брокера указан верно
+    depends_on:
+      - postgres
+      - rabbitmq
+    volumes:
+      - ./documents:/app/documents
+
+  django:
+    build: ./django  # Путь к директории Django
+    environment:
+      POSTGRES_DB: Docs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 171217
+      DATABASE_URL: "postgresql://postgres:171217@postgres:5432/Docs"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - postgres
+    volumes:
+      - ./django:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
+
+volumes:
+  postgres_data:
+  static_volume:
+  media_volume:

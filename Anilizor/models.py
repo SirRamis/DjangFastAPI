@@ -9,7 +9,7 @@ class Docs(models.Model):
 class Documents(models.Model):
     filename = models.CharField(max_length=255)
     file_path = models.FileField(upload_to='docs/')
-    size = models.IntegerField(blank=True, null=False)
+    size = models.IntegerField(blank=True, null=True)
 
     class Meta:
         db_table = 'documents'
@@ -18,7 +18,11 @@ class Documents(models.Model):
 
 class DocumentsText(models.Model):
     id = models.AutoField(primary_key=True)
-    document_id = models.IntegerField()
+    document = models.ForeignKey(
+        Documents,
+        on_delete=models.CASCADE,
+        related_name='document_texts'
+    )  # Используем ForeignKey для связи с таблицей Documents
     text = models.TextField()
 
     class Meta:

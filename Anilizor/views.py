@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from time import sleep
-from .models import Docs, Users_to_docs, Documents,DocumentsText
+from .models import Docs,Documents,DocumentsText
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpResponse
@@ -10,53 +10,13 @@ from .forms import ImageForm, ImageUploadForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 import requests
 import logging
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, redirect
+from .models import DocumentsText
+from django.http import HttpResponse
 
 #ручки для фаст апи
-FASTAPI_URL = "http://localhost:8000/upload_doc/"  # Адрес FastAPI
-# views.py
-
-# def add_image(request):
-#     if request.method == 'POST' and request.FILES['file']:
-#         file = request.FILES['file']
-#         files = {'file': file}
-#         response = requests.post(FASTAPI_URL, files=files)
-#         if response.status_code == 200:
-#             message = "Успешно"
-#         else:
-#             message = "Фиаско"
-#         return render(request, 'result.html', {'message': message})
-#     return render(request, 'add_image.html')
-# @login_required
-# def add_image(request):
-#     if request.method == 'POST':
-#         form = ImageForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             image_file = form.cleaned_data['image_file']
-#             files = {'file': image_file}
-#             response = requests.post(FASTAPI_URL, files=files)
-#             image = form.save()
-#             file_path = image.image_file.path
-#             if response.status_code == 200:
-#                 message = response.json()
-#                 file_path = message.get('file_path')
-#                 filename = message.get('filename')
-#                 document = Documents.objects.create(
-#                     filename=filename,
-#                     file_path=file_path,
-#                     size=image_file.size
-#                 )
-#                 logging.info(f"Filename: {filename}, File path: {file_path}")
-#
-#                 Users_to_docs.objects.create(user=request.user, docs_id=document)
-#             else:
-#                 message = "Фиаско"
-#             return render(request, 'result.html', {'message': message})
-#         else:
-#             return render(request, 'result.html', {'form': form, 'message': 'Фиаско'})
-#     else:
-#         form = ImageForm()
-#     return render(request, 'add_image.html', {'form': form})
-
+FASTAPI_URL = "http://localhost:8000/upload_doc/"
 
 @login_required
 def add_image(request):
@@ -100,7 +60,8 @@ def base1(request):
 def show_images(request):
     FASTAPI_URL = "http://localhost:8000/get_doc"
     response = requests.get(FASTAPI_URL)
-    docu = Documents.objects.filter(file_path__isnull=False)
+    app_folder = 'C:\\Users\\Ramis\\PycharmProjects\\DjangFastAPI\\media'
+    docu = Documents.objects.filter(file_path__isnull=False, file_path__startswith=app_folder)
     if response.status_code == 200:
         for document in docu:
             document.analysis_price = f'{(document.size or 0) * 0.001:.2f}'
@@ -109,10 +70,10 @@ def show_images(request):
         print(f"Ошибка: {response.status_code}")
         return {f"Ошибка: {response.status_code}"}
 
-def analyze_image(request, image_id):
-    image = Image.objects.get(id=image_id)
-    result = f"Анализ {image.name} успешно."
-    return render(request, 'show_text.html')
+# def analyze_image(request, image_id):
+#     image = Image.objects.get(id=image_id)
+#     result = f"Анализ {image.name} успешно."
+#     return render(request, 'show_text.html')
 
 
 # # Регистрация
@@ -184,43 +145,49 @@ def analyze_image(request, document_id):
         try:
             response = requests.post(f"http://127.0.0.1:8000/doc_analyse/{document_id}")
             if response.status_code == 200:
-                #return HttpResponse("Документ успешно проанализирован")
-                return render(request, 'show_text.html')
+                # document_id = 25
+                #FASTAPI_URL = f"http://localhost:8000/doc_text/{document_id}"
+                analysis_result = response.json()
+                #response = requests.get(FASTAPI_URL)
+                # print(response)
+                # #return HttpResponse("Документ успешно проанализирован")
+                return render(request, 'show_text.html', {'analysis_result': analysis_result})
             else:
                 return HttpResponse(f"Ошибка при анализе документа")
         except Exception as e:
-            return HttpResponse(f"Произошла ошибка: {e}", status=500)
+            return HttpResponse(f"Произннношла ошибка: {e}", status=500)
     documents = Documents.objects.all()
     return render(request, "analyze_image.html", {"documents": documents})
 
 
-def show_text(request,document_id):
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import DocumentsText  # Замените на вашу модель
+import requests
+
+
+def show_text(request, document_id):
     FASTAPI_URL = f"http://localhost:8000/doc_text/{document_id}"
     response = requests.get(FASTAPI_URL)
-    docu = DocumentsText.objects.filter(file_path__isnull=False)
     if response.status_code == 200:
         fastapi_data = response.json()
-        return render(request, 'show_text.html', {'images': docu})
+        analyzed_text = fastapi_data.get("text", "Текст отсутствует")
     else:
-        print(f"Ошибка: {response.status_code}")
-        return JsonResponse({"error": f"Ошибка: {response.status_code}"}, status=response.status_code)
+        analyzed_text = f"Ошибка FastAPI: {response.status_code}"
+    return render(request, 'show_text.html', {'text': analyzed_text})
 
 
-from django.views.decorators.csrf import csrf_exempt
+# def show_text(request,document_id):
+#     FASTAPI_URL = f"http://localhost:8000/doc_text/{document_id}"
+#     response = requests.get(FASTAPI_URL)
+#     docu = DocumentsText.objects.filter(file_path__isnull=False)
+#     if response.status_code == 200:
+#         fastapi_data = response.json()
+#         return render(request, 'show_text.html', {'images': docu})
+#     else:
+#         print(f"Ошибка: {response.status_code}")
+#         return JsonResponse({"error": f"Ошибка: {response.status_code}"}, status=response.status_code)
 
-
-# def show_text(request):
-#     FASTAPI_URL = "http://localhost:8000/doc_text"
-#     response = requests.get(FASTAPI_URL)  # Извлекаем ID из строки запроса
-#     if not :
-#         return JsonResponse({"error": "ID документа не предоставлен."}, status=400)
-#
-#     # Пример обработки ID документа
-#     return JsonResponse({
-#         "status": "success",
-#         "document_id": document_id,
-#         "message": "Текст документа успешно получен."
-#     })
 
 @csrf_exempt
 def payment(request):
@@ -229,3 +196,9 @@ def payment(request):
         return render(request, 'payment.html')
     else:
         return HttpResponse(f'<h2>Оплата не прошла</h2>')
+
+
+# @login_required
+# def show_results(request):
+#     documents = DocumentsText.objects.filter(user=request.user)
+#     return render(request, 'results.html', {'documents': documents})

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результат</title>
+    <style>
+        .document {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 400px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Спасибо за оплату</h1>
+    <h2>Результаты анализа</h2>
+    <ul>
+        {% for document in docu %}
+            <li class="document">
+                <h3>Имя файла: {{ document.document_id }}</h3>
+                <p>ID документа: {{ document.id }}</p>
+
+                {% if document.text %}
+                    <p>Результат анализа:</p>
+                    <pre>{{ document.text }}</pre>
+                {% else %}
+                    <p>Результат анализа отсутствует</p>
+                {% endif %}
+
+                <a href="/base1/">
+                    <button>На главную</button>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

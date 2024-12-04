@@ -19,26 +19,16 @@
     </style>
 </head>
 <body>
-    <h1>Спасибо за оплату</h1>
+    <h1>Спасибо за оплатуibib</h1>
     <h2>Результат</h2>
-    <ul>
-        {% for document in docu %}
-            <li class="document">
-                <h3>Имя файла: {{ document.document_id }}</h3>
-                <p>ID: {{ document.id }}</p>
-                <pre>{{ document }}</pre>
-
-                {% if document.text %}
-                    <p>{{ document.text }}</p>
-                {% else %}
-                    <p>Файл отсутствует</p>
-                {% endif %}
-                <a href="{% url 'analyze_image' document.id %}">
-                    <button>Проанализировать документ</button>
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
+    {% if analysis_result %}
+        <pre>{{ analysis_result }}</pre>
+    {% else %}
+        <p>Анализ не дал результата.</p>
+    {% endif %}
+    <a href="{% url 'analyze_image' document.id %}">
+        <button>Проанализировать документ</button>
+    </a>
     <a href="/base1/">
         <button>На главную</button>
     </a>
