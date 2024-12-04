@@ -28,23 +28,10 @@ services:
   fastapi:
     build: ./fastapi  # Путь к директории FastAPI
     environment:
-      DATABASE_URL: "postgresql://postgres:171217@localhost:5432/Docs"
+      DATABASE_URL: "postgresql://postgres:171217@postgres:5432/Docs"
       CELERY_BROKER_URL: "pyamqp://guest@rabbitmq//"
     ports:
       - "8000:8000"
-    depends_on:
-      - postgres
-      - rabbitmq
-      - celery
-    volumes:
-      - ./documents:/app/documents
-
-  celery:
-    build: ./fastapi  # Путь к директории FastAPI
-    command: celery -A celery_app worker --loglevel=info
-    environment:
-      DATABASE_URL: "postgresql://postgres:171217@localhost:5432/Docs"
-      CELERY_BROKER_URL: "pyamqp://guest@host.docker.internal//"  # Убедитесь, что адрес брокера указан верно
     depends_on:
       - postgres
       - rabbitmq

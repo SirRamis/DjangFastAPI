@@ -70,6 +70,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DjangFastAPI.wsgi.application'
 
+CELERY_BROKER_URL = 'pyamqp://guest@rabbitmq//'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -80,7 +81,8 @@ DATABASES = {
         'NAME': 'Docs',
         'USER': 'postgres',
         'PASSWORD': '171217',
-        'HOST': 'localhost',  # Или IP-адрес сервера базы данных
+        #'HOST': 'localhost',  # Или IP-адрес сервера базы данных
+        'HOST': 'postgres',
         'PORT': '5432',
         'TEST': {
             'NAME': 'test_Docs',  # Название базы для тестов
