@@ -33,7 +33,8 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('add_image/', views.add_image, name='add_image'),
     path('show_images/', views.show_images, name='show_images'),
-    path('show_text/<int:document_id>/', views.show_text, name='show_text'),
+    path('show_text/', views.show_text, name='show_text'),
+    path('show_fanks/', views.show_fanks, name='show_fanks'),
     path('payment/', views.payment, name='payment'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

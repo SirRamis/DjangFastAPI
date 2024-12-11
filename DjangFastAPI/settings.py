@@ -9,11 +9,12 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+X_FRAME_OPTIONS = 'DENY'
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-%jl0&^!q8ry^=i7xq7sq*m365qs$jc31u(56lx8h(cmidw1gdu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -70,7 +71,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DjangFastAPI.wsgi.application'
 
-CELERY_BROKER_URL = 'pyamqp://guest@rabbitmq//'
+#CELERY_BROKER_URL = 'pyamqp://guest@rabbitmq//'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -81,8 +82,8 @@ DATABASES = {
         'NAME': 'Docs',
         'USER': 'postgres',
         'PASSWORD': '171217',
-        #'HOST': 'localhost',  # Или IP-адрес сервера базы данных
-        'HOST': 'postgres',
+        'HOST': 'localhost',  # Или IP-адрес сервера базы данных
+        #'HOST': 'postgres',
         'PORT': '5432',
         'TEST': {
             'NAME': 'test_Docs',  # Название базы для тестов
@@ -122,8 +123,8 @@ USE_I18N = True
 USE_TZ = True
 
 LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/add_image/'  # Страница после входа
-LOGOUT_REDIRECT_URL = '/login'         # Страница после выхода
+# LOGIN_REDIRECT_URL = '/add_image/'  # Страница после входа
+# LOGOUT_REDIRECT_URL = '/login'         # Страница после выхода
 
 
 # Static files (CSS, JavaScript, Images)
@@ -140,3 +141,9 @@ import os
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+#MEDIA_ROOT = '/app/media'
+# Настройка URL для FastAPI
+if 'test' in sys.argv or 'test_coverage' in sys.argv:
+    FASTAPI_BASE_URL = "http://localhost:8000"  # При тестировании используем локальный адрес
+else:
+    FASTAPI_BASE_URL = "http://web:8000"  # Используйте имя контейнера FastAPI

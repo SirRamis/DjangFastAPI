@@ -4,33 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Результат</title>
-    <style>
-        .document {
-            margin-bottom: 20px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 400px;
-        }
-        .document img {
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+
 </head>
 <body>
-    <h1>Спасибо за оплатуibib</h1>
-    <h2>Результат</h2>
-    {% if analysis_result %}
-        <pre>{{ analysis_result }}</pre>
-    {% else %}
-        <p>Анализ не дал результата.</p>
-    {% endif %}
-    <a href="{% url 'analyze_image' document.id %}">
-        <button>Проанализировать документ</button>
-    </a>
-    <a href="/base1/">
-        <button>На главную</button>
-    </a>
+    <h1>Результат</h1>
+        {% for t in gettext %}
+            <div class="alert alert-warning">
+                <p>{{ t.text }}</p>
+            </div>
+        {% endfor %}
+        <a href="/base1/">
+            <button>На главную</button>
+        </a>
+
 </body>
 </html>

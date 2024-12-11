@@ -1,21 +1,26 @@
-# Используем базовый образ Python
 FROM python:3.10
+
+# Устанавливаем переменные окружения
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+# Устанавливаем зависимости системы
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Устанавливаем системные зависимости
-RUN apt-get update && apt-get install -y libpq-dev
+# Копируем файл зависимостей и устанавливаем зависимости
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Копируем файл зависимостей в контейнер
-COPY requirements.txt .
+# Копируем оставшиеся файлы проекта
+COPY . /app/
 
-# Обновляем pip и устанавливаем зависимости
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+# Пробрасываем порт
+EXPOSE 8001
 
-# Копируем всё содержимое текущей директории в контейнер
-COPY . .
-
-# Выполняем миграции базы данных перед запуском приложения Django
-CMD ["sh", "-c", "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+# Команда запуска
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]

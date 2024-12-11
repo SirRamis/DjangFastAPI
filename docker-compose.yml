@@ -1,60 +1,35 @@
 version: '3.8'
 
 services:
+  django_frontend:
+    build:
+      context: ./django_frontend
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./media:/app/media
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+    networks:
+      - shared_network
+
   postgres:
     image: postgres:13
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 171217
       POSTGRES_DB: Docs
-    ports:
-      - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - postgres_data_django:/var/lib/postgresql/data
+    networks:
+      - shared_network
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    volumes:
-      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
-    ports:
-      - "5672:5672"  # порт для подключения Celery
-      - "15672:15672"  # порт для доступа к панели управления RabbitMQ
-
-  fastapi:
-    build: ./fastapi  # Путь к директории FastAPI
-    environment:
-      DATABASE_URL: "postgresql://postgres:171217@postgres:5432/Docs"
-      CELERY_BROKER_URL: "pyamqp://guest@rabbitmq//"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - postgres
-      - rabbitmq
-    volumes:
-      - ./documents:/app/documents
-
-  django:
-    build: ./django  # Путь к директории Django
-    environment:
-      POSTGRES_DB: Docs
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 171217
-      DATABASE_URL: "postgresql://postgres:171217@postgres:5432/Docs"
-    ports:
-      - "8001:8000"
-    depends_on:
-      - postgres
-    volumes:
-      - ./django:/app
-      - static_volume:/app/static
-      - media_volume:/app/media
+networks:
+  shared_network:
+    external: true
 
 volumes:
-  postgres_data:
-  static_volume:
-  media_volume:
+  postgres_data_django:
