@@ -4,17 +4,24 @@ services:
   django_frontend:
     build:
       context: ./django_frontend
-    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8001"
+    #command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8011"
+    command: python manage.py runserver 0.0.0.0:8011
     ports:
-      - "8001:8001"
+      - "8011:8011"
     volumes:
-      - ./media:/app/media
-    env_file:
-      - ./.env
+      - .:/app
+      #- ./media:/app/media
+      - ./app/media:/usr/src/app/media
+#    env_file:
+#      - ./.env
     depends_on:
       - postgres
     networks:
       - shared_network
+    environment:
+      - FASTAPI_URL=http://127.0.0.1:8010 # Указываем FastAPI
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   postgres:
     image: postgres:13
@@ -22,6 +29,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 171217
       POSTGRES_DB: Docs
+#    ports:
+#      - "5433:5432"
     volumes:
       - postgres_data_django:/var/lib/postgresql/data
     networks:
@@ -29,6 +38,7 @@ services:
 
 networks:
   shared_network:
+    #driver: bridge
     external: true
 
 volumes:

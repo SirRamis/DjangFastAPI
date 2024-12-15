@@ -1,5 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+
+from DjangFastAPI import settings
 from .models import Documents,DocumentsText
 from django.contrib import messages
 from .forms import ImageForm
@@ -9,9 +11,12 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 import requests
 
+
+FASTAPI_HOST = 'http://host.docker.internal:8010'
+
 @login_required
 def add_image(request):
-    FASTAPI_URL = "http://localhost:8000/upload_doc/"
+    FASTAPI_URL = f"{FASTAPI_HOST}/upload_doc/"
     if request.method == 'POST':
         form = ImageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -52,13 +57,13 @@ def base1(request):
 
 @login_required
 def show_images(request):
-    FASTAPI_URL = "http://localhost:8000/get_doc"
+    FASTAPI_URL = f"{FASTAPI_HOST}/get_doc"
     response = requests.get(FASTAPI_URL)
-    app_folder = 'C:\\Users\\Ramis\\PycharmProjects\\DjangFastAPI\\media'
-    #app_folder = settings.MEDIA_ROOT
+    #app_folder = 'C:\\Users\\Ramis\\PycharmProjects\\DjangFastAPI\\media'
+    app_folder = settings.MEDIA_ROOT
 
+    #docu = Documents.objects.all()
     docu = Documents.objects.filter(file_path__isnull=False, file_path__startswith=app_folder)
-    #docu = Documents.objects.filter(file_path__isnull=False, file_path__startswith=app_folder)
 
     if response.status_code == 200:
         for document in docu:
@@ -118,7 +123,7 @@ def delete_doc(request):
         if not doc_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.delete(f"http://localhost:8000/delete_doc/{doc_id}")
+            response = requests.delete(f"{FASTAPI_HOST}/delete_doc/{doc_id}")
             if response.status_code == 200:
                 return render(request, 'delete_mess.html', {'message':"Успешно удалено."})
             else:
@@ -134,11 +139,11 @@ def analyze_image(request, document_id):
         if not document_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.post(f"http://localhost:8000/doc_analyse/{document_id}")
+            response = requests.post(f"{FASTAPI_HOST}/doc_analyse/{document_id}")
             if response.status_code == 200:
                 # document_id = 25
-                FASTAPI_URL = f"http://localhost:8000/doc_text/{document_id}"
-                FAST_URL = f"http://localhost:8000/doc_text"
+                FASTAPI_URL = f"{FASTAPI_HOST}/doc_text/{document_id}"
+                FAST_URL = f"{FASTAPI_HOST}/doc_text"
                 analysis_result = response.json()
                 analyzed_text = analysis_result.get("text", "Текст отсутствует")
                 gettext = DocumentsText.objects.all()
@@ -159,7 +164,7 @@ def show_fanks(request):
     gettext = DocumentsText.objects.all()
     return render(request, 'show_text.html', {'gettext': gettext})
 def show_text(request):
-    FASTAPI_URL = f"http://localhost:8000/get_text"
+    FASTAPI_URL = f"{FASTAPI_HOST}/get_text"
     response = requests.get(FASTAPI_URL)
     if response.status_code == 200:
         getext = DocumentsText.objects.all()

@@ -26,7 +26,7 @@
                 Имя файла : <h3>{{ document.filename }}</h3>
                 <p>ID : {{ document.id }}</p>
                 {% if document.file_path %}
-                    <img src="{{ document.file_path.url }}" alt="{{ document.filename }}">
+                    <img src="{{ document.img.url }}" alt="{{ document.filename }}">
                 {% else %}
                     <p>Файл отсутствует</p>
                 {% endif %}

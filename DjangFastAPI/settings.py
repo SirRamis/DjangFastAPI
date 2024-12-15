@@ -82,8 +82,9 @@ DATABASES = {
         'NAME': 'Docs',
         'USER': 'postgres',
         'PASSWORD': '171217',
-        'HOST': 'localhost',  # Или IP-адрес сервера базы данных
         #'HOST': 'postgres',
+        #'HOST': '127.0.0.1',
+        'HOST': 'host.docker.internal',
         'PORT': '5432',
         'TEST': {
             'NAME': 'test_Docs',  # Название базы для тестов
@@ -123,8 +124,8 @@ USE_I18N = True
 USE_TZ = True
 
 LOGIN_URL = '/login/'
-# LOGIN_REDIRECT_URL = '/add_image/'  # Страница после входа
-# LOGOUT_REDIRECT_URL = '/login'         # Страница после выхода
+LOGIN_REDIRECT_URL = '/'  # Страница после входа
+LOGOUT_REDIRECT_URL = '/'         # Страница после выхода
 
 
 # Static files (CSS, JavaScript, Images)
@@ -144,6 +145,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #MEDIA_ROOT = '/app/media'
 # Настройка URL для FastAPI
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
-    FASTAPI_BASE_URL = "http://localhost:8000"  # При тестировании используем локальный адрес
+    FASTAPI_BASE_URL = "http://localhost:8010"  # При тестировании используем локальный адрес
 else:
-    FASTAPI_BASE_URL = "http://web:8000"  # Используйте имя контейнера FastAPI
+    FASTAPI_BASE_URL = "http://fastapi:8010"  # Используйте имя контейнера FastAPI

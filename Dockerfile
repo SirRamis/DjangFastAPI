@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 # Устанавливаем переменные окружения
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -14,13 +14,13 @@ WORKDIR /app
 
 # Копируем файл зависимостей и устанавливаем зависимости
 COPY requirements.txt /app/
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+RUN echo 123
 # Копируем оставшиеся файлы проекта
 COPY . /app/
 
 # Пробрасываем порт
-EXPOSE 8001
+EXPOSE 8011
 
 # Команда запуска
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8011"]
