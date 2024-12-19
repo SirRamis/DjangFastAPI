@@ -8,7 +8,7 @@ class Docs(models.Model):
 
 class Documents(models.Model):
     filename = models.CharField(max_length=255)
-    file_path = models.FileField(upload_to='docs/')
+    file_path = models.FileField(upload_to='images/')
     size = models.IntegerField(blank=True, null=True)
 
     class Meta:
@@ -57,8 +57,15 @@ class Cart(models.Model):
 class Image(models.Model):
     name = models.CharField(max_length=255)
     image_file = models.ImageField(upload_to='images/')
-    description = models.TextField(blank=True, null=True)
+    size = models.IntegerField(blank=True, null=True)
 
     def __str__(self):
         return self.name
 
+class Image1(models.Model):
+    filename = models.CharField(max_length=255)
+    file_path = models.ImageField(upload_to='images/')
+    size = models.IntegerField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
