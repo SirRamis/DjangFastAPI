@@ -30,7 +30,7 @@ services:
       POSTGRES_PASSWORD: 171217
       POSTGRES_DB: Docs
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - postgres_data_django:/var/lib/postgresql/data
     networks:

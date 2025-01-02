@@ -1,10 +1,10 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from .models import Documents,DocumentsText
+from .models import Documents
 from django.urls import reverse
 
-#python manage.py test
 
+# python manage.py test
 
 
 class TestAnilizorPage(TestCase):
@@ -21,6 +21,7 @@ class TestAnilizorPage(TestCase):
         response = self.client.get("/about/")
         self.assertEqual(response.status_code, 200)
 
+
 class TestModelDocuments(TestCase):
     def test_create_document(self):
         document = Documents.objects.create(
@@ -31,6 +32,8 @@ class TestModelDocuments(TestCase):
         self.assertEqual(document.filename, "example.txt")
         self.assertEqual(document.file_path, "/path/to/example.txt")
         self.assertEqual(document.size, 12345)
+
+
 class TesShowImages(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username="testuser", password="password")
@@ -40,6 +43,7 @@ class TesShowImages(TestCase):
             file_path="/path/to/example.txt",
             size=12345
         )
+
     def test_show_images(self):
         self.client.login(username="testuser", password="password")
         response = self.client.get(reverse('show_images'))

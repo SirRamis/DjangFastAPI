@@ -23,12 +23,12 @@
     <ul>
         {% for document in images %}
             <li class="document">
-                Имя файла : <h3>{{ document.name }}</h3>
+                Имя файла : <h3>{{ document.filename }}</h3>
                 <p>ID : {{ document.id }}</p>
-                {% if document.image_file %}
+                {% if document.file_path %}
 
                     <!--<img src="{{ MEDIA_URL }}{{ document.file_path }}" alt="{{ document.file_path }}">-->
-                    <img src="{{ document.image_file.url }}" alt="{{ document.image_file }}">
+                    <img src="{{ document.file_path.url }}" alt="{{ document.file_path }}">
 
                 {% else %}
                     <p>Файл отсутствует</p>

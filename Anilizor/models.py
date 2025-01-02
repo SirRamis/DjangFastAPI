@@ -69,3 +69,9 @@ class Image1(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        # Устанавливаем размер файла перед сохранением
+        if self.file_path:
+            self.size = self.file_path.size
+        super().save(*args, **kwargs)  # Вызываем метод родительского класса для сохранения

@@ -21,19 +21,19 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', views.home1),
-    path('about/', views.about, name='about'),
-    path('delete_doc/', views.delete_doc, name='delete_doc'),
-    path('base1/', views.base1, name='base1'),
-    path('register/', views.register_view, name='register'),
-    path('analyze_image/<int:document_id>/', views.analyze_image, name='analyze_image'),
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('add_image/', views.add_image, name='add_image'),
-    path('show_images/', views.show_images, name='show_images'),
-    path('show_text/', views.show_text, name='show_text'),
-    path('show_thanks/', views.show_thanks, name='show_thanks'),
-    path('payment/', views.payment, name='payment'),
+                  path('admin/', admin.site.urls),
+                  path('', views.home1),
+                  path('about/', views.about, name='about'),
+                  path('delete_doc/', views.delete_doc, name='delete_doc'),
+                  path('base1/', views.base1, name='base1'),
+                  path('register/', views.register_view, name='register'),
+                  path('analyze_image/<int:document_id>/', views.analyze_image, name='analyze_image'),
+                  path('login/', views.login_view, name='login'),
+                  path('logout/', views.logout_view, name='logout'),
+                  path('add_image/', views.add_image, name='add_image'),
+                  path('show_images/', views.show_images, name='show_images'),
+                  path('show_text/', views.show_text, name='show_text'),
+                  path('show_thanks/', views.show_thanks, name='show_thanks'),
+                  path('payment/', views.payment, name='payment'),
 
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

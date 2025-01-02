@@ -7,13 +7,16 @@ class ImageForm(forms.ModelForm):
         model = Image
         fields = ['name', 'image_file']
 
+
 class FileUploadForm(forms.Form):
     file = forms.FileField()
+
 
 class ImageUploadForm(forms.Form):
     file = forms.ImageField(label='Select an image', required=True)
 
-class ImUpFor(forms.ModelForm):
+
+class ImageForm1(forms.ModelForm):
     class Meta:
         model = Image1
-        fields = ['filename']
+        fields = ['filename', 'file_path']

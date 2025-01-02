@@ -9,13 +9,13 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+import os
 import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 X_FRAME_OPTIONS = 'DENY'
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -27,7 +27,6 @@ SECRET_KEY = 'django-insecure-%jl0&^!q8ry^=i7xq7sq*m365qs$jc31u(56lx8h(cmidw1gdu
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -71,7 +70,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'DjangFastAPI.wsgi.application'
 
-#CELERY_BROKER_URL = 'pyamqp://guest@rabbitmq//'
+# CELERY_BROKER_URL = 'pyamqp://guest@rabbitmq//'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -92,7 +91,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -111,7 +109,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -125,26 +122,34 @@ USE_TZ = True
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'  # Страница после входа
-LOGOUT_REDIRECT_URL = '/'         # Страница после выхода
-
+LOGOUT_REDIRECT_URL = '/'  # Страница после выхода
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'# для юз картинок
+STATIC_URL = 'static/'  # для юз картинок
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-import os
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-#MEDIA_ROOT = '/app/media'
+
 # Настройка URL для FastAPI
 if 'test' in sys.argv or 'test_coverage' in sys.argv:
-    FASTAPI_BASE_URL = "http://localhost:8010"  # При тестировании используем локальный адрес
+    FASTAPI_URL = "http://127.0.0.1:8000"  # При тестировании используем локальный адрес
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'Docs',
+            'USER': 'postgres',
+            'PASSWORD': '171217',
+            'HOST': '127.0.0.1',
+            'PORT': '5432'
+        }
+    }
 else:
-    FASTAPI_BASE_URL = "http://fastapi:8010"  # Используйте имя контейнера FastAPI
+    FASTAPI_URL = "http://host.docker.internal:8000"  # Используйте имя контейнера FastAPI
+    HOST = 'host.docker.internal'
