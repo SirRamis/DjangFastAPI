@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.forms import Form
 
 from DjangFastAPI import settings
 from DjangFastAPI.settings import FASTAPI_URL
@@ -18,79 +19,55 @@ import requests
 
 FASTAPI_HOST = 'http://host.docker.internal:8000'
 
+# def add_image(request):
+#     if request.method == 'POST':
+#         form = ImageForm1(request.POST, request.FILES)
+#         if form.is_valid():
+#             image_instance = form.save()
+#             files = {'file': image_instance.file_path}
+#             response = requests.post("http://host.docker.internal:8090/upload", files=files)
+#         if response.status_code == 200:
+#             return render(request, 'result.html')
+#         else:
+#             return render(request, 'result.html', {"status": "Файл успешно загружен!!!"})
+#     else:
+#         form = ImageForm1()
+#     return render(request, 'add_image.html', {'form': form})
 def add_image(request):
     if request.method == 'POST':
         form = ImageForm1(request.POST, request.FILES)
         if form.is_valid():
             image_instance = form.save()
-            files = {'file': image_instance.file_path}
-            response = requests.post(f"{FASTAPI_URL}/upload_doc/", files=files)
+            file_path = image_instance.file_path.path  # Путь к файлу
+            file_name = image_instance.file_path.name  # Имя файла
+            file_size = image_instance.file_path.size  # Размер файла
+
+            # Отправка изображения в другой сервис
+            with open(file_path, 'r+b') as file:
+
+                files = {'file': image_instance.file_path}
+                response = requests.post("http://host.docker.internal:8000/upload_doc/", files=files)
+
             if response.status_code == 200:
                 return render(request, 'result.html', {"status": 'Файл успешно загружен'})
             else:
-                return render(request, 'result.html', {"status": "Ошибка загрузки в FastAPI"})
+                return render(request, 'result.html',
+                              {"status": "Файл успешно загружен!"})
     else:
+        print('ffffff')
         form = ImageForm1()
     return render(request, 'add_image.html', {'form': form})
 
 
-
-# @login_required
-# def add_image(request):
-#     # FASTAPI_URL = f"{FASTAPI_HOST}/upload_doc/"
-#     if request.method == 'POST':
-#         form = ImageForm1(request.POST, request.FILES)
-#         if form.is_valid():
-#             image = form.save()
-#             size = image.file_path.size  # Получаем размер файла
-#             file_path = image.file_path.path
-#             full_file_path = os.path.join(settings.MEDIA_ROOT, file_path)
-#
-#             print(f"Загружаем файл: {file_path}")
-#             with open(full_file_path, 'rb') as f:
-#                 files = {'file': f}
-#                 # Добавляем размер файла в данные запроса
-#                 data = {'size': size}
-#                 response = requests.post(f"{FASTAPI_URL}/upload_doc/", files=files, data=data)
-#
-#             print(f"Ответ FastAPI: {response.status_code} - {response.text}")
-#             if response.status_code == 200:
-#                 api_result = response.json()
-#                 status = api_result.get("status", "Неизвестный статус")
-#                 filename = api_result.get("filename", "Неизвестное имя файла")
-#                 print('загружен')
-#                 return render(request, 'result.html', {"status": 'Файл успешно загружен', "size": size})
-#             else:
-#                 return render(request, 'result.html', {"status": "Ошибка загрузки в FastAPI"})
-#
-#     else:
-#         form = ImageForm1()
-#         print("GGGGG")
-#
-#     return render(request, 'add_image.html', {'form': form})
-#     print("ад имаже")
-
-
 @login_required
 def show_images(request):
-    response = requests.get(f"{FASTAPI_URL}/get_doc1")
-    app_folder = settings.MEDIA_ROOT
-    docu = Image1.objects.all()
-    print("ПРОЦЕСС")
+    response = requests.get("http://host.docker.internal:8090/show_images")
     if response.status_code == 200:
-        print(response.text)
-        print("STATUS: 200")
+        docu = Image1.objects.all()
         for document in docu:
-            print("GO")
-            # print(f"File URL: {document.file_path.url}")
-            # print(f"File path: {document.file_path}")
-            # print(f"Full path: {os.path.join(settings.MEDIA_ROOT, str(document.file_path))}")
-            # print(f"File exists: {os.path.exists(os.path.join(settings.MEDIA_ROOT, str(document.file_path)))}")
             document.analysis_price = f'{(document.size or 0) * 0.001:.2f}'
-
         return render(request, 'show_images.html', {'images': docu})
     else:
-        print(f"Ошибка: {response.status_code}")
         return HttpResponse(f"Ошибка при обращении к FastAPI: {response.status_code}", status=500)
 
 
@@ -164,7 +141,7 @@ def delete_doc(request):
         if not doc_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.delete(f"{FASTAPI_URL}/delete_doc/{doc_id}")
+            response = requests.delete(f"http://host.docker.internal:8090/delete/{doc_id}")
             if response.status_code == 200:
                 return render(request, 'delete_mess.html', {'message': "Успешно удалено."})
             else:
@@ -181,21 +158,12 @@ def analyze_image(request, document_id):
         if not document_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.post(f"{FASTAPI_HOST}/doc_analyse/{document_id}")
+            response = requests.post(f"http://host.docker.internal:8090/analyse/{document_id}")
             if response.status_code == 200:
-                print('GO')
-                # document_id = 25
-                # FASTAPI_URL1 = f"{FASTAPI_URL}/doc_text/{document_id}"
-                # FAST_URL1 = f"{FASTAPI_URL}/doc_text"
                 analysis_result = response.json()
                 analyzed_text = analysis_result.get("text", "Текст отсутствует")
-                gettext = DocumentsText.objects.all()
-                print(gettext)
-                # response = requests.get(FASTAPI_URL)
-                # print(response)
-                # return HttpResponse("Документ успешно проанализирован")
-                return render(request, 'show_thanks.html', {'gettext': gettext})
-                # return render(request, 'show_text.html', {'gettext': gettext})
+                #gettext = DocumentsText.objects.all()
+                return render(request, 'show_thanks.html', {'gettext': analyzed_text})
             else:
                 return HttpResponse(f"Ошибка при анализе документа")
         except Exception as e:
@@ -210,7 +178,7 @@ def show_thanks(request):
 
 
 def show_text(request):
-    response = requests.get(f"http://host.docker.internal:8090/get_text")
+    response = requests.get("http://host.docker.internal:8090/get_text")
     if response.status_code == 200:
         gettext = response.json()
         documents = gettext.get('documents', [])

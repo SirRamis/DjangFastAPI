@@ -4,8 +4,8 @@ from .models import Image, Documents, Image1
 
 class ImageForm(forms.ModelForm):
     class Meta:
-        model = Image
-        fields = ['name', 'image_file']
+        model = Documents
+        fields = ['filename', 'file_path']
 
 
 class FileUploadForm(forms.Form):

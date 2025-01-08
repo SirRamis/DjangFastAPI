@@ -15,6 +15,12 @@ class Documents(models.Model):
         db_table = 'documents'
         #managed = False  # Django не управляет этой таблицей
 
+    def save(self, *args, **kwargs):
+        # Устанавливаем размер файла перед сохранением
+        if self.file_path:
+            self.size = self.file_path.size
+        super().save(*args, **kwargs)  # Вызываем метод родительского класса для сохранения
+
 
 class DocumentsText(models.Model):
     id = models.AutoField(primary_key=True)
@@ -75,3 +81,4 @@ class Image1(models.Model):
         if self.file_path:
             self.size = self.file_path.size
         super().save(*args, **kwargs)  # Вызываем метод родительского класса для сохранения
+
