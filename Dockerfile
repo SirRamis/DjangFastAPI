@@ -16,11 +16,19 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 RUN echo 123
+
+
 # Создаем директорию для медиафайлов
 RUN mkdir -p /app/media && chmod 777 /app/media
 # Копируем оставшиеся файлы проекта
 COPY . /app/
 
+COPY create_superuser.sh /django_app/create_superuser.sh
+RUN chmod +x /django_app/create_superuser.sh
+
+ENTRYPOINT ["/django_app/create_superuser.sh"]
+
+CMD ["sh", "/django_app/create_superuser.sh"]
 # Пробрасываем порт
 EXPOSE 8011
 

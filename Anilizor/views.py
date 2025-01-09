@@ -19,6 +19,34 @@ import requests
 
 FASTAPI_HOST = 'http://host.docker.internal:8000'
 
+
+
+def check_jwt_tokens(request):
+    access_token = request.COOKIES.get("access")
+    #logger.info(f"Access token from cookies: {access_token}")
+
+
+    if access_token is None:
+        refresh_token = request.COOKIES.get("refresh")
+        if refresh_token is None:
+            #logger.warning("No access or refresh token found, redirecting to login.")
+            return redirect("login")
+
+        try:
+            response = requests.post(f"http://host.docker.internal:8090/refresh/", data={'refresh': refresh_token})
+            response.raise_for_status()
+            new_tokens = response.json()
+            access_token = new_tokens.get("access")
+            refresh_token = new_tokens.get("refresh")
+            #logger.info(f"Access token refreshed successfully: {access_token}")
+        except requests.exceptions.RequestException as e:
+            #logger.error(f"Failed to refresh token: {str(e)}")
+            return redirect("login")
+
+    headers = {"Authorization": f"Bearer {access_token}"}
+    #logger.info(f"Headers prepared for request: {headers}")
+    return headers
+
 # def add_image(request):
 #     if request.method == 'POST':
 #         form = ImageForm1(request.POST, request.FILES)
@@ -33,6 +61,8 @@ FASTAPI_HOST = 'http://host.docker.internal:8000'
 #     else:
 #         form = ImageForm1()
 #     return render(request, 'add_image.html', {'form': form})
+
+@login_required
 def add_image(request):
     if request.method == 'POST':
         form = ImageForm1(request.POST, request.FILES)
@@ -41,9 +71,10 @@ def add_image(request):
             file_path = image_instance.file_path.path  # Путь к файлу
             file_name = image_instance.file_path.name  # Имя файла
             file_size = image_instance.file_path.size  # Размер файла
-
+            #headers = check_jwt_tokens(request)
+            #headers = {"Authorization": f"Bearer {access_token}"}
             # Отправка изображения в другой сервис
-            with open(file_path, 'r+b') as file:
+            with open(file_path, 'rb') as file:
 
                 files = {'file': image_instance.file_path}
                 response = requests.post("http://host.docker.internal:8000/upload_doc/", files=files)
@@ -54,14 +85,16 @@ def add_image(request):
                 return render(request, 'result.html',
                               {"status": "Файл успешно загружен!"})
     else:
-        print('ffffff')
+
         form = ImageForm1()
     return render(request, 'add_image.html', {'form': form})
 
 
 @login_required
 def show_images(request):
-    response = requests.get("http://host.docker.internal:8090/show_images")
+    headers = check_jwt_tokens(request)
+    print(f'ТУТ ХЕДЕР : {headers}')
+    response = requests.get("http://host.docker.internal:8090/show_images", headers=headers)
     if response.status_code == 200:
         docu = Image1.objects.all()
         for document in docu:
@@ -71,19 +104,50 @@ def show_images(request):
         return HttpResponse(f"Ошибка при обращении к FastAPI: {response.status_code}", status=500)
 
 
+# def register_view(request):
+#     if request.method == 'POST':
+#         form = UserCreationForm(request.POST)
+#         if form.is_valid():
+#             user = form.save()
+#             login(request, user)
+#             messages.success(request, 'Вы успешно зарегистрировались!')
+#             return redirect('add_image')  # Перенаправление после регистрации
+#         else:
+#             messages.error(request, 'Ошибка регистрации. Проверьте данные.')
+#     else:
+#         form = UserCreationForm()
+#     return render(request, 'register.html', {'form': form})
+
+
+import requests
+
 def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            # Синхронизация с Django REST
+            try:
+                response = requests.post(
+                    'http://host.docker.internal:8090/register/',
+                    json={
+                        'username': user.username,
+                        'password': request.POST['password1'],
+                    },
+                )
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                messages.error(request, f"Ошибка синхронизации с REST API: {e}")
             login(request, user)
             messages.success(request, 'Вы успешно зарегистрировались!')
-            return redirect('add_image')  # Перенаправление после регистрации
+            return redirect('add_image')
         else:
             messages.error(request, 'Ошибка регистрации. Проверьте данные.')
     else:
         form = UserCreationForm()
     return render(request, 'register.html', {'form': form})
+
+
 
 
 def login_view(request):
@@ -137,11 +201,13 @@ def delete_doc(request):
     if not is_moderator_or_admin(request.user):
         return render(request, 'not_moder.html')
     if request.method == "POST":
-        doc_id = request.POST.get("doc_id")
-        if not doc_id:
+        document_id = request.POST.get("doc_id")
+        headers = check_jwt_tokens(request)
+        print(f'ТУТ ХЕДЕР : {headers}')
+        if not document_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.delete(f"http://host.docker.internal:8090/delete/{doc_id}")
+            response = requests.delete(f"http://host.docker.internal:8090/delete/{document_id}", headers=headers)
             if response.status_code == 200:
                 return render(request, 'delete_mess.html', {'message': "Успешно удалено."})
             else:
@@ -155,10 +221,11 @@ def delete_doc(request):
 def analyze_image(request, document_id):
     if request.method == "POST":
         document_id = request.POST.get("document_id")
+        headers = check_jwt_tokens(request)
         if not document_id:
             return HttpResponse("ID документа не указан", status=400)
         try:
-            response = requests.post(f"http://host.docker.internal:8090/analyse/{document_id}")
+            response = requests.post(f"http://host.docker.internal:8090/analyse/{document_id}", headers=headers)
             if response.status_code == 200:
                 analysis_result = response.json()
                 analyzed_text = analysis_result.get("text", "Текст отсутствует")
@@ -166,9 +233,11 @@ def analyze_image(request, document_id):
                 return render(request, 'show_thanks.html', {'gettext': analyzed_text})
             else:
                 return HttpResponse(f"Ошибка при анализе документа")
+
         except Exception as e:
             return HttpResponse(f"Произннношла ошибка: {e}", status=500)
     documents = Documents.objects.all()
+
     return render(request, "analyze_image.html", {"documents": documents})
 
 
@@ -176,9 +245,11 @@ def show_thanks(request):
     gettext = DocumentsText.objects.all()
     return render(request, 'show_text.html', {'gettext': gettext})
 
-
+@login_required
 def show_text(request):
-    response = requests.get("http://host.docker.internal:8090/get_text")
+    headers = check_jwt_tokens(request)
+    print(f'ТУТ ХЕДЕР : {headers}')
+    response = requests.get("http://host.docker.internal:8090/get_text", headers=headers)
     if response.status_code == 200:
         gettext = response.json()
         documents = gettext.get('documents', [])
