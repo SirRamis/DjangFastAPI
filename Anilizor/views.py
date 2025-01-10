@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.views import LoginView
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.forms import Form
@@ -14,7 +15,7 @@ from .forms import ImageForm, ImageForm1
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 import requests
 
 FASTAPI_HOST = 'http://host.docker.internal:8000'
@@ -71,7 +72,7 @@ def add_image(request):
             file_path = image_instance.file_path.path  # Путь к файлу
             file_name = image_instance.file_path.name  # Имя файла
             file_size = image_instance.file_path.size  # Размер файла
-            #headers = check_jwt_tokens(request)
+            headers = check_jwt_tokens(request)
             #headers = {"Authorization": f"Bearer {access_token}"}
             # Отправка изображения в другой сервис
             with open(file_path, 'rb') as file:
@@ -118,6 +119,35 @@ def show_images(request):
 #         form = UserCreationForm()
 #     return render(request, 'register.html', {'form': form})
 
+"""Аутентификация и авторизация пользователя"""
+
+class CustomLoginView(LoginView):
+    template_name = "login.html"
+    success_url = "base1.html"
+
+    def form_valid(self, form):
+        username = form.cleaned_data.get("username")
+        password = form.cleaned_data.get("password")
+
+        response = super().form_valid(form)
+
+        data = {"username": username, "password": password}
+
+        jwt_response = requests.post(f"http://host.docker.internal:8090/api/token/", json=data)
+
+        if jwt_response.status_code == 200:
+            tokens = jwt_response.json()
+            access_token = tokens["access"]
+            refresh_token = tokens["refresh"]
+
+            response.set_cookie('access', access_token, max_age=300)
+            response.set_cookie('refresh', refresh_token, max_age=3600)
+
+        else:
+            response = JsonResponse({"error": f"Failed to obtain JWT token from API. {jwt_response.status_code}"}, status=500)
+        return response
+
+
 
 import requests
 
@@ -148,21 +178,21 @@ def register_view(request):
     return render(request, 'register.html', {'form': form})
 
 
+# аутентиф
 
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, f'Добро пожаловать, {user.username}!')
-            return redirect('base1')  # Перенаправление после входа
-        else:
-            messages.error(request, 'Неправильные имя пользователя или пароль.')
-    else:
-        form = AuthenticationForm()
-    return render(request, 'login.html', {'form': form})
+# def login_view(request):
+#     if request.method == 'POST':
+#         form = AuthenticationForm(data=request.POST)
+#         if form.is_valid():
+#             user = form.get_user()
+#             login(request, user)
+#             messages.success(request, f'Добро пожаловать, {user.username}!')
+#             return redirect('base1')  # Перенаправление после входа
+#         else:
+#             messages.error(request, 'Неправильные имя пользователя или пароль.')
+#     else:
+#         form = AuthenticationForm()
+#     return render(request, 'login.html', {'form': form})
 
 
 @csrf_exempt
