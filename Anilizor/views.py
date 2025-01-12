@@ -3,12 +3,6 @@ import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.views import LoginView
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-from django.forms import Form
-
-from DjangFastAPI import settings
-from DjangFastAPI.settings import FASTAPI_URL
 from .models import Documents, DocumentsText, Image, Image1
 from django.contrib import messages
 from .forms import ImageForm, ImageForm1
@@ -48,76 +42,7 @@ def check_jwt_tokens(request):
     #logger.info(f"Headers prepared for request: {headers}")
     return headers
 
-# def add_image(request):
-#     if request.method == 'POST':
-#         form = ImageForm1(request.POST, request.FILES)
-#         if form.is_valid():
-#             image_instance = form.save()
-#             files = {'file': image_instance.file_path}
-#             response = requests.post("http://host.docker.internal:8090/upload", files=files)
-#         if response.status_code == 200:
-#             return render(request, 'result.html')
-#         else:
-#             return render(request, 'result.html', {"status": "Файл успешно загружен!!!"})
-#     else:
-#         form = ImageForm1()
-#     return render(request, 'add_image.html', {'form': form})
 
-@login_required
-def add_image(request):
-    if request.method == 'POST':
-        form = ImageForm1(request.POST, request.FILES)
-        if form.is_valid():
-            image_instance = form.save()
-            file_path = image_instance.file_path.path  # Путь к файлу
-            file_name = image_instance.file_path.name  # Имя файла
-            file_size = image_instance.file_path.size  # Размер файла
-            headers = check_jwt_tokens(request)
-            #headers = {"Authorization": f"Bearer {access_token}"}
-            # Отправка изображения в другой сервис
-            with open(file_path, 'rb') as file:
-
-                files = {'file': image_instance.file_path}
-                response = requests.post("http://host.docker.internal:8000/upload_doc/", files=files)
-
-            if response.status_code == 200:
-                return render(request, 'result.html', {"status": 'Файл успешно загружен'})
-            else:
-                return render(request, 'result.html',
-                              {"status": "Файл успешно загружен!"})
-    else:
-
-        form = ImageForm1()
-    return render(request, 'add_image.html', {'form': form})
-
-
-@login_required
-def show_images(request):
-    headers = check_jwt_tokens(request)
-    print(f'ТУТ ХЕДЕР : {headers}')
-    response = requests.get("http://host.docker.internal:8090/show_images", headers=headers)
-    if response.status_code == 200:
-        docu = Image1.objects.all()
-        for document in docu:
-            document.analysis_price = f'{(document.size or 0) * 0.001:.2f}'
-        return render(request, 'show_images.html', {'images': docu})
-    else:
-        return HttpResponse(f"Ошибка при обращении к FastAPI: {response.status_code}", status=500)
-
-
-# def register_view(request):
-#     if request.method == 'POST':
-#         form = UserCreationForm(request.POST)
-#         if form.is_valid():
-#             user = form.save()
-#             login(request, user)
-#             messages.success(request, 'Вы успешно зарегистрировались!')
-#             return redirect('add_image')  # Перенаправление после регистрации
-#         else:
-#             messages.error(request, 'Ошибка регистрации. Проверьте данные.')
-#     else:
-#         form = UserCreationForm()
-#     return render(request, 'register.html', {'form': form})
 
 """Аутентификация и авторизация пользователя"""
 
@@ -178,22 +103,6 @@ def register_view(request):
     return render(request, 'register.html', {'form': form})
 
 
-# аутентиф
-
-# def login_view(request):
-#     if request.method == 'POST':
-#         form = AuthenticationForm(data=request.POST)
-#         if form.is_valid():
-#             user = form.get_user()
-#             login(request, user)
-#             messages.success(request, f'Добро пожаловать, {user.username}!')
-#             return redirect('base1')  # Перенаправление после входа
-#         else:
-#             messages.error(request, 'Неправильные имя пользователя или пароль.')
-#     else:
-#         form = AuthenticationForm()
-#     return render(request, 'login.html', {'form': form})
-
 
 @csrf_exempt
 def payment(request):
@@ -224,6 +133,49 @@ def home1(request):
 
 def base1(request):
     return render(request, 'base1.html')
+
+
+@login_required
+def add_image(request):
+    if request.method == 'POST':
+        form = ImageForm1(request.POST, request.FILES)
+        if form.is_valid():
+            image_instance = form.save()
+            file_path = image_instance.file_path.path  # Путь к файлу
+            file_name = image_instance.file_path.name  # Имя файла
+            file_size = image_instance.file_path.size  # Размер файла
+            headers = check_jwt_tokens(request)
+            #headers = {"Authorization": f"Bearer {access_token}"}
+            # Отправка изображения в другой сервис
+            with open(file_path, 'rb') as file:
+
+                files = {'file': image_instance.file_path}
+                response = requests.post("http://host.docker.internal:8000/upload_doc/", files=files, headers=headers)
+
+            if response.status_code == 200:
+                return render(request, 'result.html', {"status": 'Файл успешно загружен'})
+            else:
+                return render(request, 'result.html',
+                              {"status": "Файл успешно загружен!"})
+    else:
+
+        form = ImageForm1()
+    return render(request, 'add_image.html', {'form': form})
+
+
+@login_required
+def show_images(request):
+    headers = check_jwt_tokens(request)
+    print(f'ТУТ ХЕДЕР : {headers}')
+    response = requests.get("http://host.docker.internal:8090/show_images", headers=headers)
+    if response.status_code == 200:
+        docu = Image1.objects.all()
+        for document in docu:
+            document.analysis_price = f'{(document.size or 0) * 0.001:.2f}'
+        return render(request, 'show_images.html', {'images': docu})
+    else:
+        return HttpResponse(f"Ошибка при обращении к FastAPI: {response.status_code}", status=500)
+
 
 
 @login_required
@@ -271,14 +223,19 @@ def analyze_image(request, document_id):
     return render(request, "analyze_image.html", {"documents": documents})
 
 
+# def show_thanks(request):
+#     gettext = DocumentsText.objects.all()
+#     return render(request, 'show_text.html', {'gettext': gettext})
 def show_thanks(request):
-    gettext = DocumentsText.objects.all()
-    return render(request, 'show_text.html', {'gettext': gettext})
+    return show_text()
+
+
+
 
 @login_required
 def show_text(request):
     headers = check_jwt_tokens(request)
-    print(f'ТУТ ХЕДЕР : {headers}')
+    print(f'ТУТ ТОКЕН : {headers}')
     response = requests.get("http://host.docker.internal:8090/get_text", headers=headers)
     if response.status_code == 200:
         gettext = response.json()
