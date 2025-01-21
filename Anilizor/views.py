@@ -145,7 +145,7 @@ def add_image(request):
             file_name = image_instance.file_path.name  # Имя файла
             file_size = image_instance.file_path.size  # Размер файла
             headers = check_jwt_tokens(request)
-            #headers = {"Authorization": f"Bearer {access_token}"}
+
             # Отправка изображения в другой сервис
             with open(file_path, 'rb') as file:
 
